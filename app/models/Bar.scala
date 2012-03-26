@@ -1,3 +1,11 @@
 package models
 
-case class Bar(id: Option[String], name: String)
+import org.squeryl.{Schema, KeyedEntity}
+
+case class Bar(name: String) extends KeyedEntity[Long] {
+  val id: Long = 0
+}
+
+object AppDB extends Schema {
+  val barTable = table[Bar]("BAR")
+}

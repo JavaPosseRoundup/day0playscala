@@ -1,20 +1,18 @@
 package controllers
 
 import play.api.mvc._
-import models.Bar
-import scala.collection.mutable.ArrayBuffer
 
 import com.codahale.jerkson.Json
 import play.api.data.Form
-import play.api.data.Forms.{mapping, text, optional}
+import play.api.data.Forms.{mapping, text}
+
+import org.squeryl.PrimitiveTypeMode._
+import models.{AppDB, Bar}
 
 object Application extends Controller {
   
-  var bars = ArrayBuffer[Bar]()
-  
   val barForm = Form(
     mapping(
-      "id" -> optional(text),
       "name" -> text
     )(Bar.apply)(Bar.unapply)
   )
@@ -24,15 +22,23 @@ object Application extends Controller {
   }
   
   def listBars = Action {
-    Ok(Json.generate(bars)).as(JSON)
+    val json = inTransaction {
+      val bars = from(AppDB.barTable)(bar =>
+        select(bar)
+      )
+      Json.generate(bars)
+    }
+    Ok(json).as(JSON)
   }
 
   def addBar = Action { implicit request =>
     barForm.bindFromRequest.fold(
       errors => BadRequest,
       bar => {
-          bars += bar
+        inTransaction {
+          AppDB.barTable.insert(bar)
           Redirect(routes.Application.index())
+        }
       }
     )
   }
