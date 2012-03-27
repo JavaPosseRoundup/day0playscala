@@ -2,7 +2,7 @@ package models
 
 import org.squeryl.{Schema, KeyedEntity}
 
-case class Bar(name: String) extends KeyedEntity[Long] {
+case class Bar(name: Option[String]) extends KeyedEntity[Long] {
   val id: Long = 0
 }
 

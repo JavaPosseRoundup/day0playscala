@@ -4,7 +4,7 @@ import play.api.mvc._
 
 import com.codahale.jerkson.Json
 import play.api.data.Form
-import play.api.data.Forms.{mapping, text}
+import play.api.data.Forms.{mapping, text, optional}
 
 import org.squeryl.PrimitiveTypeMode._
 import models.{AppDB, Bar}
@@ -13,7 +13,7 @@ object Application extends Controller {
   
   val barForm = Form(
     mapping(
-      "name" -> text
+      "name" -> optional(text)
     )(Bar.apply)(Bar.unapply)
   )
 
@@ -32,15 +32,10 @@ object Application extends Controller {
   }
 
   def addBar = Action { implicit request =>
-    barForm.bindFromRequest.fold(
-      errors => BadRequest,
-      bar => {
-        inTransaction {
-          AppDB.barTable.insert(bar)
-          Redirect(routes.Application.index())
-        }
-      }
-    )
+    inTransaction {
+      AppDB.barTable.insert(barForm.bindFromRequest.get)
+    }
+    Redirect(routes.Application.index())
   }
   
 }
