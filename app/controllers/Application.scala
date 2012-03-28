@@ -32,10 +32,10 @@ object Application extends Controller {
   }
 
   def addBar = Action { implicit request =>
-    inTransaction {
-      AppDB.barTable.insert(barForm.bindFromRequest.get)
-    }
-    Redirect(routes.Application.index())
+    barForm.bindFromRequest.value map { bar =>
+      inTransaction(AppDB.barTable insert bar)
+      Redirect(routes.Application.index())
+    } getOrElse BadRequest
   }
   
 }
